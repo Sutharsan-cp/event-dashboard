@@ -5,7 +5,6 @@ import plotly.express as px
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="Registration Analysis Dashboard",
-    page_icon="🎉",
     layout="wide",
 )
 
