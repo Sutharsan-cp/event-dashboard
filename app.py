@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import io
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -39,13 +40,18 @@ if uploaded_file is None:
     st.stop()
 
 try:
-    df_raw = pd.read_csv(uploaded_file, on_bad_lines='warn')
+    # Read uploaded file robustly: decode bytes to UTF-8 (ignore errors),
+    # normalize newlines, and let pandas parse from a StringIO buffer.
+    content = uploaded_file.getvalue().decode('utf-8', errors='ignore')
+    content = content.replace('\r\n', '\n')
+    df_raw = pd.read_csv(io.StringIO(content), on_bad_lines='skip')
+    df_raw.columns = df_raw.columns.str.replace('\ufeff', '', regex=True)
     if df_raw is None or df_raw.empty:
         st.error("The uploaded CSV file is empty or could not be read.", icon="🚨")
         st.stop()
     df = preprocess_data(df_raw.copy())
 except Exception as e:
-    st.error(f"An error occurred: {e}")
+    st.error(f"⚠️ Could not read the CSV file. Try re-saving it as UTF-8 format.\n\nError details: {e}")
     st.stop()
 
 # --- SIDEBAR FILTERS ---
